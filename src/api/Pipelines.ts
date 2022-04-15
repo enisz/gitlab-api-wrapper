@@ -9,24 +9,25 @@ import {
     SinglePipeline,
     PipelineVariables
 } from "../interface/api/pipelines";
+import { PaginatedOptions } from "../interface/api/PaginatedOptions";
 
 export class Pipelines extends AbstractApiEndpoint {
 
     /**
      * List pipelines in a project. Child pipelines are not included in the results, but you can get child pipeline individually.
      * @param options Query options
-     * @param page Page number to fetch
-     * @param perPage Items per page
      * @returns List of pipelines in project
      */
-    public listProjectPipelines(options: ListProjectPipelinesOptions, page: number = 1, perPage: number = 20): Promise<PaginatedResponse<Pipeline>> {
-        return this.getAxios().get<Pipeline[]>(`projects/${options.id}/pipelines?page=${page}&per_page=${perPage}`, { data: options ? options : undefined })
+    public listProjectPipelines(options: ListProjectPipelinesOptions & PaginatedOptions): Promise<PaginatedResponse<Pipeline>> {
+        const { page, per_page, ...endpointOptions } = options;
+
+        return this.getAxios().get<Pipeline[]>(`projects/${options.id}/pipelines${this.paginatedUrl(options)}`, { data: endpointOptions ? endpointOptions : undefined })
             .then((response: AxiosResponse<Pipeline[]>) => this.paginatedResult<Pipeline>(response.data, response.headers));
     }
 
     /**
      * Get one pipeline from a project.
-     * @param pipelineId The ID or URL-encoded path of the project owned by the authenticated user
+     * @param options Query options
      * @returns One pipeline
      */
     public getPipeline(options: GetPipelineOptions): Promise<SinglePipeline> {
